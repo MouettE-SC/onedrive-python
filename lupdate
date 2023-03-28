@@ -1,0 +1,19 @@
+#!/usr/bin/env venv/bin/python
+import os
+import sys
+import subprocess
+
+cmd = ["pyside6-lupdate"]
+
+for root, dirs, files in os.walk('onedrive'):
+    for name in files:
+        if name.endswith(".py"):
+            cmd.append(os.path.join(root, name))
+cmd.append("-ts")
+cmd.append("onedrive/gui/i18n/fr.ts")
+print("Running '%s'" % ' '.join(cmd))
+p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+for line in p.stdout:
+    print(line.decode('utf8').strip())
+p.wait()
+sys.exit(p.returncode)
