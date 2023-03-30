@@ -1,5 +1,6 @@
 VERSION = "0.1"
 
+# See https://learn.microsoft.com/en-us/graph/deployments
 endpoints = {
     'Global': {
         'name': 'Global',
@@ -22,7 +23,7 @@ endpoints = {
         'graph': 'https://graph.microsoft.de'
     },
     'CN': {
-        'name': 'China',
+        'name': 'China (21Vianet)',
         'auth': 'https://login.chinacloudapi.cn',
         'graph': 'https://microsoftgraph.chinacloudapi.cn'
     }
