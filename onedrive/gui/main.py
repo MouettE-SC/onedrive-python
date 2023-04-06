@@ -43,8 +43,6 @@ class MainWindow(QDialog):
         preferences_tab = QWidget()
         tabs.addTab(preferences_tab, self.tr("Preferences"))
 
-
-
         # Tray menu
         self.preferences_action = QAction()
         self.about_action = QAction()
@@ -101,4 +99,14 @@ class MainWindow(QDialog):
         self.tray_icon.show()
 
     def add_account(self):
-        AddAccount(self).show()
+        a = AddAccount(self, self.config)
+        a.accepted.connect(self.append_new_account)
+        a.show()
+
+    def append_new_account(self):
+        # TODO append last account in self.config.accounts
+        log.info("Appending last create account")
+
+    def populate_accounts(self):
+        # TODO
+        log.info("Populating accounts list")

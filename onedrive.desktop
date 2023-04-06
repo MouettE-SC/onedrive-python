@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Onedrive
+Comment=Onedrive client with caching using fuse filesystem
+Exec=/usr/bin/onedrive-python %U
+#Icon=postman
+Type=Application
+Categories=Office
+MimeType=x-scheme-handler/onedrive
+StartupNotify=false

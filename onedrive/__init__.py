@@ -30,11 +30,18 @@ endpoints = {
 }
 
 app_defaults = {
-    'app_default_id': "b738e7eb-4132-43e2-8fb9-27198b8a1263",
-    'app_default_name': "OneDriveFUSE",
-    'app_default_company_name': "la-mouette",
-    'app_default_isv': True,
-    'app_default_endpoint': "Global",
-    'app_default_tenant': "common",
-    'app_default_version': VERSION
+    'endpoint': "Global",
+    'id': "413e73c0-43ab-4b3b-85dc-03c5a6684787",
+    'name': "Onedrive Fuse for Linux",
+    'company_name': "M LECLERC CHARLES",
+    'isv': True,
+    'tenant': "common",
+    'version': VERSION
 }
+
+def_scopes = ['Files.ReadWrite',
+              'Files.ReadWrite.All',
+              'offline_access',
+              'openid',
+              'profile',
+              'Sites.ReadWrite.All']
