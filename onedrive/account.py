@@ -1,4 +1,4 @@
-from onedrive import app_defaults
+from onedrive import app_defaults, consumer_tid
 
 sync_types = ['full', 'on-demand']
 
@@ -6,8 +6,8 @@ sync_types = ['full', 'on-demand']
 class Drive:
 
     def __init__(self, data: dict = {}):
-        self.id = ""
-        self.sync = ""
+        self.id = data.get('id', '')
+        self.sync = data.get('sync', '')
 
 
 class Account:
@@ -40,3 +40,12 @@ class Account:
         res += self.application_name + "/"
         res += self.application_version
         return res
+
+    def is_business(self):
+        return self.tid == consumer_tid
+
+    def reset_auth(self):
+        self.access_token = ''
+        self.scopes = []
+        self.expiration = 0.
+        self.refresh_token = ''

@@ -45,3 +45,5 @@ def_scopes = ['Files.ReadWrite',
               'openid',
               'profile',
               'Sites.ReadWrite.All']
+
+consumer_tid = '9188040d-6c67-4c5b-b112-36a304b66dad'

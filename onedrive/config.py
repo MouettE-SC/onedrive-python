@@ -69,7 +69,7 @@ class OnedriveConfig(ConfigParser):
         os.makedirs(self.get_dir('data'), exist_ok=True)
 
     def save_accounts(self):
-        log.debug("Saving account configuration")
+        log.info("Saving account configuration")
         with open(self.accounts_conf, 'w') as f:
             json.dump(list(self.accounts.values()), f, default=lambda o: o.__dict__, indent=4)
 

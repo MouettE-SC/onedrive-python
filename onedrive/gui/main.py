@@ -1,6 +1,6 @@
 from PySide6.QtCore import Slot, Qt, QEvent
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import (QDialog,
+from PySide6.QtWidgets import (QDialog, QGroupBox,
                                QMenu, QMessageBox, QPushButton,
                                QSystemTrayIcon, QVBoxLayout, QTabWidget, QWidget)
 import os.path
@@ -10,6 +10,7 @@ from onedrive import VERSION
 from onedrive.gui.icons import icons
 from onedrive.config import OnedriveConfig
 from onedrive.gui.add_account import AddAccount
+from onedrive.gui.account_widget import AccountWidget
 
 log = logging.getLogger("gui")
 
@@ -37,6 +38,11 @@ class MainWindow(QDialog):
         add_account.clicked.connect(self.add_account)
         self.accounts_layout.addWidget(add_account, alignment=Qt.AlignmentFlag.AlignRight)
         self.accounts_layout.addStretch(1)
+        self.accounts_list = QWidget()
+        self.accounts_list_layout = QVBoxLayout()
+        self.accounts_list.setLayout(self.accounts_list_layout)
+        self.accounts_layout.addWidget(self.accounts_list)
+        self.populate_accounts()
         accounts_tab.setLayout(self.accounts_layout)
 
         # Preferences tab
@@ -104,9 +110,18 @@ class MainWindow(QDialog):
         a.show()
 
     def append_new_account(self):
-        # TODO append last account in self.config.accounts
         log.info("Appending last create account")
+        self.accounts_list_layout.addWidget(AccountWidget(self, self.config.accounts[-1]))
 
     def populate_accounts(self):
-        # TODO
         log.info("Populating accounts list")
+        _remove = []
+        for i in range(self.accounts_list_layout.count()):
+            c = self.accounts_list_layout.itemAt(i).widget()
+            if c:
+                _remove.append(c)
+        for c in _remove:
+            c.deleteLater()
+
+        for a in self.config.accounts.values():
+           self.accounts_list_layout.addWidget(AccountWidget(self, a))

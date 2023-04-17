@@ -69,6 +69,8 @@ class OneDriveAPI(QObject):
         self.auth_cb: typing.Callable[[bool], None] = None
         self.r_session = Session()
         self.r_session.headers.update({'User-Agent': self.account.get_user_agent()})
+        if self.account.access_token:
+            self.r_session.headers.update({'Authorization': f'Bearer {self.account.access_token}'})
         self.oauth: OAuth = None
         self.state = ''
 
@@ -85,8 +87,8 @@ class OneDriveAPI(QObject):
         self.oauth = None
         if url is None:
             self.auth_cb(False)
-        query_data = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
         try:
+            query_data = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
             if 'error' in query_data:
                 if query_data['error'][0] == 'access_denied':
                     QMessageBox.critical(self.parent(), self.tr('Error'), self.tr('Access denied'))
@@ -139,10 +141,10 @@ class OneDriveAPI(QObject):
                 self.account.expiration = now + r_data['expires_in']
                 log.info("Successfully obtained access and refresh tokens, saving new account information")
                 self.config.add_account(self.account)
+                self.r_session.headers.update({'Authorization': f'Bearer {self.account.access_token}'})
                 self.auth_cb(True)
             else:
                 if 'error' in r_data:
-                    print(r_data)
                     log.error(f"Invalid response {r.status_code} for initial token request: {r_data['error']['code']}/{r_data['error']['message']}")
                 else:
                     log.error(f"Invalid response {r.status_code} for initial token request")
@@ -160,3 +162,56 @@ class OneDriveAPI(QObject):
         if self.oauth:
             log.debug("Cancelling oauth login")
             self.oauth.cancel()
+
+    def refresh_token(self):
+        log.info(f"Refreshing token for {self.account.description}")
+        self.r_session.headers.update({'Authorization': None})
+        payload = {
+            'client_id': self.account.application_id,
+            'grant_type': 'refresh_token',
+            'scope': ' '.join(' '.join(self.account.scopes)),
+            'refresh_token': self.account.refresh_token
+        }
+        try:
+            now = time()
+            r: Response = self.r_session.post(self.token_url, data=payload)
+            try:
+                r_data = r.json()
+            except JSONDecodeError:
+                log.exception(f"Invalid JSON returned for access token refresh (status_code={r.status_code})")
+                return False
+            if 200 <= r.status_code < 300:
+                r_scopes = r_data['scope'].split()
+                self.account.scopes = r_scopes
+                self.account.access_token = r_data['access_token']
+                self.account.refresh_token = r_data['refresh_token']
+                self.account.expiration = now + r_data['expires_in']
+                log.info("Successfully refreshed access token, saving account information")
+                self.config.save_accounts()
+                self.r_session.headers.update({'Authorization': f'Bearer {self.account.access_token}'})
+                return True
+            else:
+                if 'error' in r_data:
+                    log.error(f"Invalid response {r.status_code} for token refresh request: {r_data['error']['code']}/{r_data['error']['message']}")
+                else:
+                    log.error(f"Invalid response {r.status_code} for token refresh request")
+                return False
+        except:
+            log.exception("Error while trying to refresh access token")
+            return False
+
+    def invalidate_auth(self):
+        log.info(f"Invalidating authentication information for {self.account.description}")
+        self.account.reset_auth()
+        self.config.save_accounts()
+
+    def query(self, method: str, url: str, params=None, data=None):
+        if time() > self.account.expiration - 60. and not self.refresh_token():
+            self.invalidate_auth()
+            return {"error": { "status": 401, "message": self.tr("Invalid authentication information ; user authentication needed")}}
+        try:
+            r: Response = self.r_session.request(method, url, params=params, data=data)
+
+        except:
+            log.exception("Error while running API request")
+            return {"error": { "message": self.tr("Error while running API request")}}
